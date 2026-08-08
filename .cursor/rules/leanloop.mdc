@@ -1,0 +1,20 @@
+---
+description: LeanLoop token-efficient engineering discipline with Git safety and task-scoped state
+alwaysApply: true
+---
+
+# LeanLoop rules for Cursor
+
+State lives in files, not chat. Start by reading `STACK.md` / `PLAN.md` when present plus the active task state (`python3 scripts/leanloop/task.py path`). Create missing planning files from templates before non-trivial work. Navigate from `state/REPOMAP.md`; grep before ranged reads.
+
+- No non-trivial code before PLAN.md exists with machine-checkable verifiers and non-goals.
+- Before editing run `python3 scripts/leanloop/git_guard.py`; a dirty main tree means use an isolated worktree, not mixed changes.
+- Parallel workers must use different Git worktrees/branches; never share a working tree/index.
+- Contract files own boundary shapes; DB changes use migrations; UI follows project design tokens.
+- 3 failed attempts on the same error → stop, persist a stuck report in active task state, escalate.
+- Completion gate: lint/format → typecheck → named verifier → impacted tests → domain gates → diff review.
+- Commit only explicit paths with `scripts/leanloop/safe_commit.py`; never `git add .` or wildcard staging.
+- After each green step update PLAN.md and task state; end sessions with HANDOFF.
+- Keep replies compressed; do not restate code or durable state already on disk.
+
+Skills are installed under `.cursor/skills/` from canonical `.agents/skills/`. Native discovery owns descriptions; this always-on rule intentionally does not repeat the skill index.

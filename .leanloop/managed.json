@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "targets": {
+    ".claude/skills": {
+      "mode": "copy",
+      "skills": {
+        "api-contract": "288777ce04e95c5c0a36608fe8851d310fdbedb9832eadd28efdff51e6167436",
+        "codebase-map": "b6ac5f761f321eb7f538c0c199d7f147e5889c54c3418af4292330135658c80e",
+        "concise-output": "a21895322db0b5b7485570520a4ab2e1f1732ad65f7a3e1727f3565e83ad0795",
+        "context-lifecycle": "5866e56338d86249743dd237cc201b8d92f288fe07f942348ea445eeeffe524e",
+        "database-schema": "9ef6c31b3f0050eaafa6c146cddc4382019db2e480858d0905d8aa170b55804e",
+        "delegation-protocol": "950fbce691371dce40c2730ab4a26456f719f1da8645c5fba949af7b4b92861b",
+        "design-review": "f0e2538026d54a3d6ae43f051025bd165bbd03887a7e7bef9b695ae46d2449cb",
+        "docs-minimalism": "1cd82627853820ca9f7d120f7f368c5b2a04038b2fd391e7195c6f654d8c7009",
+        "frontend-design": "1678cdb8eb50d3a4054a7c46191fac3c41c18f0faabf0dc6995fa8349fe3c41c",
+        "loop-discipline": "ebd542f260d838083ae2efe2acc893f5cd67fcd7c1258658b87b18b2f65a7aff",
+        "module-boundaries": "8cefe3fc93c0252b421774cbb48784000627d90acac79837d673c195454e39d0",
+        "orchestration-topology": "8f731e4984c6f9c42020e11bd339fe18b11179eaf87fa42b64f24ee8ebc44c11",
+        "read-budget": "d973b5e7d292c84cadd1e98e10070d859fb1d45da2ec6690e793b7607ee1bd11",
+        "report-contract": "a76db71962b731ddd48686e0210e4b63cd0580c95d84b54839e67dc53821100d",
+        "skill-hygiene": "d44a9e38cbc1b9050ba533eba96a5cda0fa8f81365f55d0b1595e0542424a18d",
+        "spec-and-plan": "54f21fd0dd4b1d69d44a746d9d71060b5086438c4ce68a0a20df9b5ba89ab95e",
+        "stack-profile": "78f53d00fc8a6ce34fe40b74dba9a0fe53156fec01c5212c42f3e93838b880b8",
+        "token-telemetry": "9643cb613a587383971435d6a12ce0f78decfca479a689173dc7ac0f4e665464",
+        "tool-economics": "ac518f284f935f23f7d86e4fa9411db147fe9b3f52ce97c1c294856f7de16af4",
+        "verification-gate": "151ad9bcc198eb185000b5ee88278d0ac052849cff292ce11184abcc0b5cf3fb",
+        "wiki-protocol": "5c0addcf16ddc114d11863b15dd4a22eb49fd8ab929be69cc1d453c28cd8481e"
+      }
+    },
+    ".cursor/skills": {
+      "mode": "copy",
+      "skills": {
+        "api-contract": "288777ce04e95c5c0a36608fe8851d310fdbedb9832eadd28efdff51e6167436",
+        "codebase-map": "b6ac5f761f321eb7f538c0c199d7f147e5889c54c3418af4292330135658c80e",
+        "concise-output": "a21895322db0b5b7485570520a4ab2e1f1732ad65f7a3e1727f3565e83ad0795",
+        "context-lifecycle": "5866e56338d86249743dd237cc201b8d92f288fe07f942348ea445eeeffe524e",
+        "database-schema": "9ef6c31b3f0050eaafa6c146cddc4382019db2e480858d0905d8aa170b55804e",
+        "delegation-protocol": "950fbce691371dce40c2730ab4a26456f719f1da8645c5fba949af7b4b92861b",
+        "design-review": "f0e2538026d54a3d6ae43f051025bd165bbd03887a7e7bef9b695ae46d2449cb",
+        "docs-minimalism": "1cd82627853820ca9f7d120f7f368c5b2a04038b2fd391e7195c6f654d8c7009",
+        "frontend-design": "1678cdb8eb50d3a4054a7c46191fac3c41c18f0faabf0dc6995fa8349fe3c41c",
+        "loop-discipline": "ebd542f260d838083ae2efe2acc893f5cd67fcd7c1258658b87b18b2f65a7aff",
+        "module-boundaries": "8cefe3fc93c0252b421774cbb48784000627d90acac79837d673c195454e39d0",
+        "orchestration-topology": "8f731e4984c6f9c42020e11bd339fe18b11179eaf87fa42b64f24ee8ebc44c11",
+        "read-budget": "d973b5e7d292c84cadd1e98e10070d859fb1d45da2ec6690e793b7607ee1bd11",
+        "report-contract": "a76db71962b731ddd48686e0210e4b63cd0580c95d84b54839e67dc53821100d",
+        "skill-hygiene": "d44a9e38cbc1b9050ba533eba96a5cda0fa8f81365f55d0b1595e0542424a18d",
+        "spec-and-plan": "54f21fd0dd4b1d69d44a746d9d71060b5086438c4ce68a0a20df9b5ba89ab95e",
+        "stack-profile": "78f53d00fc8a6ce34fe40b74dba9a0fe53156fec01c5212c42f3e93838b880b8",
+        "token-telemetry": "9643cb613a587383971435d6a12ce0f78decfca479a689173dc7ac0f4e665464",
+        "tool-economics": "ac518f284f935f23f7d86e4fa9411db147fe9b3f52ce97c1c294856f7de16af4",
+        "verification-gate": "151ad9bcc198eb185000b5ee88278d0ac052849cff292ce11184abcc0b5cf3fb",
+        "wiki-protocol": "5c0addcf16ddc114d11863b15dd4a22eb49fd8ab929be69cc1d453c28cd8481e"
+      }
+    }
+  }
+}

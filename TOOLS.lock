@@ -1,0 +1,6 @@
+# LeanLoop external tool lockfile — update deliberately, never via @latest in normal runs.
+CCUSAGE_VERSION=20.0.18
+OPENWIKI_VERSION=0.2.3
+CLAUDE_MONITOR_VERSION=4.0.0
+UI_UX_PRO_MAX_VERSION=2.11.3
+DEPENDENCY_CRUISER_VERSION=18.1.0

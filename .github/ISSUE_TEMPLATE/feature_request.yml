@@ -1,0 +1,34 @@
+name: Feature request
+description: Propose a measurable workflow, safety, quality, or cost improvement
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: failure-mode
+    attributes:
+      label: Failure mode or repeated cost
+      description: What recurring problem should LeanLoop remove?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Prefer a mechanical guard, script, or narrowly-triggered skill over always-on prose.
+    validations:
+      required: true
+  - type: textarea
+    id: verifier
+    attributes:
+      label: How would we verify it?
+      description: Describe a test, benchmark shape, or observable acceptance criterion.
+    validations:
+      required: true
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impact review
+      options:
+        - label: I considered context/token overhead.
+        - label: I considered Git/repository-state safety.
+        - label: I considered backward compatibility for existing installations.

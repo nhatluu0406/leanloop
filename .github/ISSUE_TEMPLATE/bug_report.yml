@@ -1,0 +1,58 @@
+name: Bug report
+description: Report a reproducible LeanLoop failure or unsafe behavior
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping make LeanLoop safer and more predictable.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Include commands and a minimal repository/task shape. Remove secrets and private data.
+      placeholder: |
+        1. Run ...
+        2. Create ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - Core scripts
+        - Claude Code adapter/hooks/agents
+        - Codex adapter/skills
+        - Cursor adapter/skills
+        - Installer/sync
+        - Git/worktree safety
+        - Telemetry/tooling
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.12.4"
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: "Windows 11 / macOS / Ubuntu"
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Doctor output
+      description: Paste `python3 scripts/leanloop/doctor.py --strict` output when relevant.
+      render: text

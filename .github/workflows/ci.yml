@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Python syntax
+        run: python3 -m compileall -q scripts .claude/hooks tests
+      - name: Shell syntax
+        run: |
+          bash -n scripts/sync.sh
+          bash -n scripts/install_tools.sh
+          bash -n scripts/token_report.sh
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Skill drift
+        run: python3 scripts/leanloop/sync.py --check
+      - name: LeanLoop doctor
+        run: python3 scripts/leanloop/doctor.py --strict

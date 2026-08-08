@@ -1,0 +1,15 @@
+# LeanLoop local/ephemeral state
+state/CURRENT_TASK
+state/CHECKPOINT.md
+state/reports/
+state/tasks/*/CHECKPOINT.md
+state/tasks/*/reports/
+
+# Generated/cache
+__pycache__/
+*.py[cod]
+node_modules/
+.pytest_cache/
+
+# Local worktree containers (default worktree path is a sibling, this is defensive)
+.leanloop-worktrees/

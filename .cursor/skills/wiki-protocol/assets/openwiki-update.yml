@@ -1,0 +1,38 @@
+# OpenWiki scheduled docs update — copy to .github/workflows/openwiki-update.yml
+# Wiki maintenance runs HERE, in CI, never in an interactive agent session (wiki-protocol rule).
+name: openwiki-update
+on:
+  schedule:
+    - cron: "0 3 * * 1"          # weekly, Monday 03:00 UTC — tune to your change rate
+  workflow_dispatch: {}           # manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-wiki:
+    runs-on: ubuntu-latest
+    env:
+      OPENWIKI_PROVIDER: anthropic          # or openai / gemini / bedrock ... per your setup
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENWIKI_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install OpenWiki
+        run: npm install -g openwiki
+      - name: Update wiki (creates initial docs if none exist)
+        run: openwiki code --update --print
+      - name: Open PR with wiki changes
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/openwiki-update
+          title: "docs: scheduled wiki update (OpenWiki)"
+          commit-message: "docs: openwiki scheduled update"
+          body: >
+            Automated wiki refresh. Review against openwiki/INSTRUCTIONS.md brevity rules —
+            reject pages that read like code walkthroughs.
+          delete-branch: true
