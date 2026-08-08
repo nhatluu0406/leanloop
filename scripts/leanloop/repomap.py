@@ -145,24 +145,24 @@ def main() -> int:
                 note_parts.append("symbols: " + ", ".join(syms))
             if imps:
                 note_parts.append("imports: " + ", ".join(imps))
-                dependency_hints.append(f"- `{path.relative_to(root).as_posix()}` → {', '.join(f'`{i}`' for i in imps)}")
-            note = " — " + "; ".join(note_parts) if note_parts else ""
+                dependency_hints.append(f"- `{path.relative_to(root).as_posix()}` -> {', '.join(f'`{i}`' for i in imps)}")
+            note = " -- " + "; ".join(note_parts) if note_parts else ""
             lines.append(f"{'  ' * depth}- {name} ({line_count(path)}L){note}")
         if len(files) > args.max_files:
-            lines.append(f"{'  ' * depth}- … +{len(files) - args.max_files} more")
+            lines.append(f"{'  ' * depth}- ... +{len(files) - args.max_files} more")
 
     if dependency_hints:
         lines.extend(["", "## Local dependency hints", *dependency_hints[:40]])
 
     out = "\n".join(lines)
     if len(out) > args.max_chars:
-        out = out[: args.max_chars].rstrip() + "\n\n… (truncated; deepen with targeted grep/read rather than raising the global map budget)"
+        out = out[: args.max_chars].rstrip() + "\n\n... (truncated; deepen with targeted grep/read rather than raising the global map budget)"
 
     state = root / "state"
     state.mkdir(parents=True, exist_ok=True)
     dest = state / "REPOMAP.md"
     dest.write_text(out + "\n", encoding="utf-8")
-    print(f"wrote {dest} ({len(out)} chars ≈ {len(out)//4} rough tokens)")
+    print(f"wrote {dest} ({len(out)} chars ~ {len(out)//4} rough tokens)")
     return 0
 
 

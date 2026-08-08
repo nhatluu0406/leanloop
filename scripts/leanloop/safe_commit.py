@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stage an explicit allowlist and commit it — never `git add .`.
+"""Stage an explicit allowlist and commit it -- never `git add .`.
 
 This prevents one worker from accidentally committing another worker's files. It is
 not a substitute for worktree isolation; use scripts/leanloop/worktree.py for parallel work.

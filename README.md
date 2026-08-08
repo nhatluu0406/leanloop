@@ -6,13 +6,15 @@
 
 A portable engineering discipline for **Claude Code, OpenAI Codex, and Cursor** that keeps agent context lean while adding planning, verification, Git isolation, durable state, and measurable cost controls.
 
+[![CI](https://github.com/nhatluu0406/leanloop/actions/workflows/ci.yml/badge.svg)](https://github.com/nhatluu0406/leanloop/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/nhatluu0406/leanloop?include_prereleases&sort=semver)](https://github.com/nhatluu0406/leanloop/releases)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/github/license/nhatluu0406/leanloop)](LICENSE)
+
 ![Claude Code](https://img.shields.io/badge/Claude_Code-supported-D97757?style=flat-square)
-![Codex](https://img.shields.io/badge/OpenAI_Codex-supported-111111?style=flat-square&logo=openai&logoColor=white)
+![OpenAI Codex](https://img.shields.io/badge/OpenAI_Codex-supported-111111?style=flat-square&logo=openai&logoColor=white)
 ![Cursor](https://img.shields.io/badge/Cursor-supported-111111?style=flat-square)
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
-![Dependencies](https://img.shields.io/badge/core_dependencies-0-2ea44f?style=flat-square)
-![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
+![Core dependencies](https://img.shields.io/badge/core_dependencies-0-2ea44f?style=flat-square)
 
 **21 progressive-disclosure skills · 4 Claude hooks · 4 Claude agents · non-destructive sync · isolated parallel worktrees · explicit-path commits · pinned optional tooling · stdlib-only core**
 
@@ -68,13 +70,15 @@ The transcript can disappear; the project still knows what is true.
 
 ## Quick start
 
+> Current release candidate: **v1.0.0-rc.1**. The core requires Python 3.10+. Commands below use `python`; use your local Python 3 launcher if it has another name.
+
 ### Use LeanLoop as the project/template itself
 
 ```bash
 # After cloning/forking the repository
-python3 scripts/leanloop/sync.py
-python3 scripts/leanloop/repomap.py .
-python3 scripts/leanloop/doctor.py
+python scripts/leanloop/sync.py
+python scripts/leanloop/repomap.py .
+python scripts/leanloop/doctor.py --strict
 ```
 
 Create project state from the templates when needed:
@@ -82,19 +86,19 @@ Create project state from the templates when needed:
 ```bash
 cp templates/STACK.md STACK.md
 cp templates/PLAN.md PLAN.md
-python3 scripts/leanloop/task.py start my-feature
+python scripts/leanloop/task.py start my-feature
 ```
 
 ### Install into an existing repository
 
-LeanLoop has a conflict-aware installer. It does **not** use `cp -r` over your repository.
+LeanLoop has a conflict-aware installer. It does **not** bulk-copy over your repository.
 
 ```bash
 # Tier 0 + Tier 1: recommended default for normal code projects
-python3 scripts/leanloop/install.py /path/to/project --tiers 0,1
+python scripts/leanloop/install.py /path/to/project --tiers 0,1
 
 # Install every built-in skill
-python3 scripts/leanloop/install.py /path/to/project --all
+python scripts/leanloop/install.py /path/to/project --all
 ```
 
 The installer:
@@ -104,13 +108,40 @@ The installer:
 - installs core Python utilities under the namespaced `scripts/leanloop/` path;
 - stores support docs/templates under `.leanloop/kit/`;
 - merges Claude hooks without replacing unrelated settings;
+- records version, tiers, interpreter choice, and managed-file SHA-256 provenance in `.leanloop/install.json`;
 - installs only the requested skill tiers.
 
 After installing:
 
 ```bash
 cd /path/to/project
-python3 scripts/leanloop/doctor.py
+python scripts/leanloop/doctor.py --strict
+```
+
+### Upgrade, expand tiers, or uninstall
+
+Run the **new release's** `install.py` against the project you want to upgrade:
+
+```bash
+# Keep currently installed tiers and upgrade LeanLoop-owned files
+python scripts/leanloop/install.py /path/to/project --upgrade
+
+# Keep current tiers and add Tier 2
+python scripts/leanloop/install.py /path/to/project --upgrade --add-tiers 2
+
+# Replace the tier selection explicitly
+python scripts/leanloop/install.py /path/to/project --upgrade --tiers 0,1,3
+
+# Remove only verified LeanLoop-owned content
+python scripts/leanloop/install.py /path/to/project --uninstall
+```
+
+Upgrade/uninstall are intentionally conservative. If a tracked LeanLoop-managed file or propagated skill was changed locally, LeanLoop refuses the operation before mutating lifecycle state. Foreign skills, unrelated Claude settings, task state, and user Git changes remain outside LeanLoop ownership.
+
+Version check:
+
+```bash
+python scripts/leanloop/doctor.py --version
 ```
 
 ---
@@ -121,8 +152,8 @@ Parallel workers must never share one Git index, even if the planned source file
 
 ```bash
 # From the orchestrator tree
-python3 scripts/leanloop/worktree.py create plan-2-auth
-python3 scripts/leanloop/worktree.py create plan-3-ui
+python scripts/leanloop/worktree.py create plan-2-auth
+python scripts/leanloop/worktree.py create plan-3-ui
 ```
 
 Each worker receives its own worktree/branch, implements one reviewed PLAN step, verifies it, and commits only explicit paths. The orchestrator reviews and integrates approved commits, normally with `git cherry-pick`.
@@ -130,7 +161,7 @@ Each worker receives its own worktree/branch, implements one reviewed PLAN step,
 Before any implementation:
 
 ```bash
-python3 scripts/leanloop/git_guard.py
+python scripts/leanloop/git_guard.py
 ```
 
 A dirty main worktree is treated as user state to preserve — not something an agent may reset, stash, or absorb.
@@ -138,7 +169,7 @@ A dirty main worktree is treated as user state to preserve — not something an 
 Safe commit:
 
 ```bash
-python3 scripts/leanloop/safe_commit.py \
+python scripts/leanloop/safe_commit.py \
   -m "plan#2: add refresh-token rotation" \
   src/auth/service.ts tests/auth/service.test.ts
 ```
@@ -152,9 +183,9 @@ python3 scripts/leanloop/safe_commit.py \
 `.agents/skills/` is the canonical source. Claude and Cursor receive managed copies via:
 
 ```bash
-python3 scripts/leanloop/sync.py
-python3 scripts/leanloop/sync.py --check   # CI/drift check
-python3 scripts/leanloop/sync.py --link    # per-skill symlinks, foreign skills preserved
+python scripts/leanloop/sync.py
+python scripts/leanloop/sync.py --check   # CI/drift check
+python scripts/leanloop/sync.py --link    # per-skill symlinks, foreign skills preserved
 ```
 
 Sync tracks only LeanLoop-owned entries in `.leanloop/managed.json`. A foreign skill is never deleted. A locally modified managed copy is refused rather than silently overwritten.
@@ -198,7 +229,7 @@ Codex and Cursor follow the same risk/isolation rules through their adapters and
 Start a task:
 
 ```bash
-python3 scripts/leanloop/task.py start checkout-retry
+python scripts/leanloop/task.py start checkout-retry
 ```
 
 LeanLoop uses:
@@ -222,7 +253,7 @@ Claude Code hooks automatically assist pre-compaction checkpointing, session rel
 ## Repository map
 
 ```bash
-python3 scripts/leanloop/repomap.py .
+python scripts/leanloop/repomap.py .
 ```
 
 `state/REPOMAP.md` contains a bounded tree, line counts, key symbols, and a small number of likely local dependency hints. Unlike the original implementation, it includes important hidden infrastructure such as `.agents/`, `.claude/`, `.cursor/`, `.github/`, and `.leanloop/` while excluding Git/cache/vendor noise.
@@ -236,19 +267,20 @@ The map is a **locator**, not semantic truth. Exact behavior still comes from co
 Local health check:
 
 ```bash
-python3 scripts/leanloop/doctor.py --strict
-python3 -m unittest discover -s tests -v
+python scripts/leanloop/doctor.py --strict
+python -m unittest discover -s tests -v
 ```
 
 GitHub Actions validates:
 
-- Python syntax;
-- shell syntax;
-- unit/integration tests;
+- Python 3.10 minimum support on Linux;
+- current stable Python on Linux, Windows, and macOS;
+- Python syntax and unit/integration tests;
 - propagated-skill drift;
-- adapter/skill/tool-lock invariants.
+- adapter/skill/tool-lock/version invariants;
+- POSIX shell wrapper syntax.
 
-The CI workflow uses a full commit SHA for its checkout action rather than a floating tag.
+A final job named **`validate`** aggregates the matrix so branch protection can require one stable check name. GitHub Actions dependencies are pinned to full commit SHAs rather than floating tags.
 
 ---
 
@@ -257,9 +289,9 @@ The CI workflow uses a full commit SHA for its checkout action rather than a flo
 External tooling is optional and pinned in [`TOOLS.lock`](TOOLS.lock).
 
 ```bash
-python3 scripts/leanloop/token_report.py daily all
-python3 scripts/leanloop/token_report.py daily claude
-python3 scripts/leanloop/token_report.py daily codex
+python scripts/leanloop/token_report.py daily all
+python scripts/leanloop/token_report.py daily claude
+python scripts/leanloop/token_report.py daily codex
 ```
 
 LeanLoop does not claim a universal “X% token saving.” Different models, caches, tool schemas, and task shapes behave differently. Benchmark representative work before/after a workflow change and include **quality + rework**, not just token count.
@@ -280,9 +312,13 @@ Optional tools and their policy live in [`TOOLS.md`](TOOLS.md). Normal install/r
 ├── rules/leanloop.mdc          always-on thin adapter
 └── skills/                     managed generated copies
 .github/workflows/ci.yml        self-validation
-.leanloop/managed.json          sync ownership manifest
+.leanloop/managed.json          propagated-skill ownership manifest
+.leanloop/install.json          installed-project version/provenance manifest
 scripts/leanloop/               stdlib-only core utilities
 skills.json                     single tier manifest
+VERSION                         framework/release version
+CHANGELOG.md                    consumer-visible release history
+docs/RELEASING.md               maintainer release contract/checklist
 TOOLS.lock                      pinned external versions
 templates/                      BRIEF · STACK · PLAN · CHECKPOINT · HANDOFF · wiki instructions
 state/                          generated durable project/task memory
@@ -308,14 +344,26 @@ See [`PLAYBOOK.md`](PLAYBOOK.md) for the complete operating lifecycle.
 
 ---
 
-## Compatibility notes
+## Compatibility
 
-- **Claude Code:** deepest integration — native skills plus hooks and predefined subagents.
-- **Codex:** canonical `.agents/skills/` + `AGENTS.md`; workflow safety is disk/Git based rather than Claude-hook dependent.
-- **Cursor:** `.cursor/rules/leanloop.mdc` + propagated skills; same durable state and Git isolation discipline.
-- **Core:** Python 3.10+ standard library. Bash is used only by optional convenience/tool-install wrappers.
+| Environment | v1 release-candidate status | Integration |
+|---|---|---|
+| Linux | Tested in CI | Core + all repository tests |
+| Windows | Tested in CI | Core + all repository tests |
+| macOS | Tested in CI | Core + all repository tests |
+| Claude Code | Supported | Native skills, hooks, predefined subagents |
+| OpenAI Codex | Supported | `.agents/skills/` + `AGENTS.md` + disk/Git safety |
+| Cursor | Supported | `.cursor/rules/leanloop.mdc` + propagated skills |
 
-Tool vendors evolve. Hooks intentionally fail open on unexpected Claude hook payloads so an API change degrades enforcement rather than breaking development; `doctor.py` and CI should catch repository-side drift.
+**Core requirement:** Python 3.10+ standard library only. Bash is used only by optional POSIX convenience/tool-install wrappers; the core Python lifecycle and tests are cross-platform. The installer auto-selects an available Python hook command instead of hard-coding `python3`.
+
+Tool vendors evolve. Hooks intentionally fail open on unexpected Claude hook payloads so an API change degrades enforcement rather than breaking development; `doctor.py` and CI catch repository-side drift.
+
+## Versioning and releases
+
+LeanLoop uses Semantic Versioning for stable public contracts. See [`CHANGELOG.md`](CHANGELOG.md) for consumer-visible changes and [`docs/RELEASING.md`](docs/RELEASING.md) for the release checklist and compatibility contract.
+
+Before stable `v1.0.0`, `v1.0.0-rc.1` should be dogfooded on at least two real repositories. Only release-blocking fixes should land between the final RC and stable v1.
 
 ---
 

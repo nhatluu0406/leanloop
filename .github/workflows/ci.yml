@@ -8,21 +8,59 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  core:
+    name: Core (${{ matrix.os }} / Python ${{ matrix.python }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.10"
+          - os: ubuntu-latest
+            python: "3.14"
+          - os: windows-latest
+            python: "3.14"
+          - os: macos-latest
+            python: "3.14"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Python syntax
+        run: python -m compileall -q scripts .claude/hooks tests
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Skill drift
+        run: python scripts/leanloop/sync.py --check
+      - name: LeanLoop doctor
+        run: python scripts/leanloop/doctor.py --strict
+
+  shell:
+    name: Shell syntax
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Python syntax
-        run: python3 -m compileall -q scripts .claude/hooks tests
-      - name: Shell syntax
+      - name: Validate wrappers
         run: |
           bash -n scripts/sync.sh
           bash -n scripts/install_tools.sh
           bash -n scripts/token_report.sh
-      - name: Unit tests
-        run: python3 -m unittest discover -s tests -v
-      - name: Skill drift
-        run: python3 scripts/leanloop/sync.py --check
-      - name: LeanLoop doctor
-        run: python3 scripts/leanloop/doctor.py --strict
+
+  validate:
+    name: validate
+    if: ${{ always() }}
+    needs: [core, shell]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate required checks
+        env:
+          CORE_RESULT: ${{ needs.core.result }}
+          SHELL_RESULT: ${{ needs.shell.result }}
+        run: |
+          test "$CORE_RESULT" = "success"
+          test "$SHELL_RESULT" = "success"
