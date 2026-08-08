@@ -49,6 +49,28 @@ class SyncTests(unittest.TestCase):
         self.assertNotEqual(cp.returncode, 0)
         self.assertIn("changed locally", cp.stderr + cp.stdout)
 
+    def test_adopts_identical_unmanaged_skill(self):
+        src = self.repo / ".agents/skills/demo"
+        for rel in (Path(".claude/skills/demo"), Path(".cursor/skills/demo")):
+            dest = self.repo / rel
+            shutil.copytree(src, dest)
+        cp = self.run_sync()
+        self.assertEqual(cp.returncode, 0, cp.stdout + cp.stderr)
+        self.assertIn("adopted", cp.stdout)
+        manifest = json.loads((self.repo / ".leanloop/managed.json").read_text())
+        self.assertIn("demo", manifest["targets"][".claude/skills"]["skills"])
+        self.assertIn("demo", manifest["targets"][".cursor/skills"]["skills"])
+
+    def test_conflict_preflight_does_not_partially_mutate_other_target(self):
+        conflict = self.repo / ".cursor/skills/demo"
+        conflict.mkdir(parents=True)
+        (conflict / "SKILL.md").write_text("different foreign skill\n", encoding="utf-8")
+        cp = self.run_sync()
+        self.assertNotEqual(cp.returncode, 0)
+        self.assertIn("aborted before changing any propagation target", cp.stdout + cp.stderr)
+        self.assertFalse((self.repo / ".claude/skills/demo").exists())
+        self.assertFalse((self.repo / ".leanloop/managed.json").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

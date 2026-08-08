@@ -69,6 +69,43 @@ def ensure_replaceable(path: Path, previous_digest: str | None, force: bool) -> 
         )
 
 
+def sync_preflight(root: Path, canonical: dict[str, Path], previous_targets: dict, force: bool) -> list[str]:
+    """Validate every propagation target before mutating any of them.
+
+    Exact unmanaged copies are safe to adopt. Different same-name unmanaged skills
+    remain foreign and block synchronization.
+    """
+    issues: list[str] = []
+    for target_rel in TARGETS:
+        key = target_rel.as_posix()
+        entry = previous_targets.get(key, {}) if isinstance(previous_targets, dict) else {}
+        prev_skills = entry.get("skills", {}) if isinstance(entry, dict) else {}
+        if not isinstance(prev_skills, dict):
+            prev_skills = {}
+        target = root / target_rel
+
+        for name, src in canonical.items():
+            dest = target / name
+            if not dest.exists() and not dest.is_symlink():
+                continue
+            expected = digest_tree(src)
+            current = digest_tree(dest)
+            old_digest = prev_skills.get(name)
+            if old_digest is None:
+                if current != expected:
+                    issues.append(f"foreign skill conflicts with canonical name: {dest}")
+            elif current not in {old_digest, expected} and not force:
+                issues.append(f"managed copy changed locally: {dest}")
+
+        for name, old_digest in prev_skills.items():
+            if name in canonical:
+                continue
+            dest = target / name
+            if (dest.exists() or dest.is_symlink()) and digest_tree(dest) != old_digest and not force:
+                issues.append(f"stale managed skill modified locally; not removing: {dest}")
+    return issues
+
+
 def sync_target(root: Path, target_rel: Path, canonical: dict[str, Path], previous: dict,
                 mode: str, force: bool, check: bool) -> tuple[dict, list[str]]:
     target = root / target_rel
@@ -110,9 +147,10 @@ def sync_target(root: Path, target_rel: Path, canonical: dict[str, Path], previo
             current_manifest[name] = expected
             continue
 
-        if old_digest is not None and (dest.exists() or dest.is_symlink()) and digest_tree(dest) == expected:
+        if (dest.exists() or dest.is_symlink()) and digest_tree(dest) == expected:
             current_manifest[name] = expected
-            print(f"current  {target_rel / name}")
+            label = "current" if old_digest is not None else "adopted"
+            print(f"{label:<8} {target_rel / name}")
             continue
         ensure_replaceable(dest, old_digest, force)
         safe_remove(dest)
@@ -152,6 +190,14 @@ def main() -> int:
     new_targets: dict[str, dict] = {}
     all_issues: list[str] = []
     mode = "link" if args.link else "copy"
+
+    if not args.check:
+        preflight_issues = sync_preflight(root, canonical, previous_targets, args.force_managed)
+        if preflight_issues:
+            for issue in preflight_issues:
+                print(f"FAIL: {issue}", file=sys.stderr)
+            print("FAIL: synchronization aborted before changing any propagation target", file=sys.stderr)
+            return 1
 
     for target_rel in TARGETS:
         key = target_rel.as_posix()

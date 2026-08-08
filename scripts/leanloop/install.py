@@ -420,8 +420,12 @@ def selected_tiers(cfg: dict, args: argparse.Namespace, existing: dict | None) -
 
 
 
-def propagation_preflight(target: Path, selected: list[str]) -> list[str]:
-    """Mirror sync ownership checks before lifecycle writes anything."""
+def propagation_preflight(source: Path, target: Path, selected: list[str]) -> list[str]:
+    """Mirror sync ownership checks before lifecycle writes anything.
+
+    Exact unmanaged propagated copies are adoptable (legacy/manual installs or a
+    previously interrupted install). Different same-name skills remain foreign.
+    """
     manifest = load_json(target / SYNC_MANIFEST, {})
     targets = manifest.get("targets", {}) if isinstance(manifest, dict) else {}
     issues: list[str] = []
@@ -433,10 +437,13 @@ def propagation_preflight(target: Path, selected: list[str]) -> list[str]:
         for name in selected:
             dest = target / target_rel / name
             old_digest = previous.get(name)
-            if old_digest is None and (dest.exists() or dest.is_symlink()):
-                issues.append(f"foreign skill conflicts with selected LeanLoop skill: {(Path(target_rel) / name).as_posix()}")
-            elif old_digest is not None and (dest.exists() or dest.is_symlink()) and tree_digest(dest) != old_digest:
-                issues.append(f"propagated managed skill modified locally: {(Path(target_rel) / name).as_posix()}")
+            if dest.exists() or dest.is_symlink():
+                current = tree_digest(dest)
+                expected = tree_digest(source / ".agents/skills" / name)
+                if old_digest is None and current != expected:
+                    issues.append(f"foreign skill conflicts with selected LeanLoop skill: {(Path(target_rel) / name).as_posix()}")
+                elif old_digest is not None and current not in {old_digest, expected}:
+                    issues.append(f"propagated managed skill modified locally: {(Path(target_rel) / name).as_posix()}")
         for name, old_digest in previous.items():
             if name in selected:
                 continue
@@ -560,7 +567,7 @@ def install_or_upgrade(source: Path, target: Path, args: argparse.Namespace) -> 
 
     conflicts = managed_file_conflicts(target, desired, previous_files)
     conflicts.extend(block_conflicts(target, previous_blocks, desired_blocks))
-    conflicts.extend(propagation_preflight(target, selected))
+    conflicts.extend(propagation_preflight(source, target, selected))
     if isinstance(existing, dict) and existing.get("sync_ownership_hash"):
         if sync_ownership_hash(target / SYNC_MANIFEST) != existing.get("sync_ownership_hash"):
             conflicts.append("propagated-skill ownership manifest changed outside the tracked lifecycle")

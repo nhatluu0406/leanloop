@@ -64,6 +64,39 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual(settings.read_text(encoding="utf-8"), "{not valid json\n")
             self.assertFalse((target / ".agents/skills/concise-output").exists())
 
+    def test_adopts_identical_preexisting_propagated_skills(self):
+        import shutil
+        with tempfile.TemporaryDirectory() as td:
+            target = Path(td)
+            subprocess.run(["git", "init", "-q"], cwd=target, check=True)
+            skill = "concise-output"
+            src = ROOT / ".agents/skills" / skill
+            for rel in (Path(".claude/skills") / skill, Path(".cursor/skills") / skill):
+                shutil.copytree(src, target / rel)
+            cp = subprocess.run(
+                [sys.executable, str(ROOT / "scripts/leanloop/install.py"), str(target), "--tiers", "0"],
+                text=True, capture_output=True,
+            )
+            self.assertEqual(cp.returncode, 0, cp.stdout + cp.stderr)
+            self.assertTrue((target / ".leanloop/install.json").exists())
+            self.assertTrue((target / ".leanloop/managed.json").exists())
+
+    def test_foreign_same_name_skill_aborts_before_install_mutation(self):
+        with tempfile.TemporaryDirectory() as td:
+            target = Path(td)
+            subprocess.run(["git", "init", "-q"], cwd=target, check=True)
+            conflict = target / ".cursor/skills/concise-output"
+            conflict.mkdir(parents=True)
+            (conflict / "SKILL.md").write_text("project-owned different skill\n", encoding="utf-8")
+            cp = subprocess.run(
+                [sys.executable, str(ROOT / "scripts/leanloop/install.py"), str(target), "--tiers", "0"],
+                text=True, capture_output=True,
+            )
+            self.assertEqual(cp.returncode, 1, cp.stdout + cp.stderr)
+            self.assertIn("installation did not start", cp.stdout)
+            self.assertFalse((target / ".agents/skills/concise-output").exists())
+            self.assertFalse((target / ".leanloop/kit/PLAYBOOK.md").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
