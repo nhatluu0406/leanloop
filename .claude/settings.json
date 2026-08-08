@@ -4,7 +4,10 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "python3 .claude/hooks/precompact_checkpoint.py" }
+          {
+            "type": "command",
+            "command": "python .claude/hooks/precompact_checkpoint.py"
+          }
         ]
       }
     ],
@@ -12,7 +15,10 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "python3 .claude/hooks/session_start.py" }
+          {
+            "type": "command",
+            "command": "python .claude/hooks/session_start.py"
+          }
         ]
       }
     ],
@@ -20,13 +26,16 @@
       {
         "matcher": "Read",
         "hooks": [
-          { "type": "command", "command": "python3 .claude/hooks/read_guard.py" }
+          {
+            "type": "command",
+            "command": "python .claude/hooks/read_guard.py"
+          }
         ]
       }
     ]
   },
   "statusLine": {
     "type": "command",
-    "command": "python3 .claude/hooks/statusline.py"
+    "command": "python .claude/hooks/statusline.py"
   }
 }

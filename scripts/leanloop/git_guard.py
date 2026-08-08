@@ -39,7 +39,7 @@ def main() -> int:
         for line in dirty[:20]:
             print(f"  {line}")
         if len(dirty) > 20:
-            print(f"  … +{len(dirty)-20} more")
+            print(f"  ... +{len(dirty)-20} more")
         print("Use scripts/leanloop/worktree.py create <task-slug> to get an isolated clean worktree.")
         return 1
     print("OK: Git worktree/index clean" if not dirty else "WARN: dirty tree explicitly allowed")

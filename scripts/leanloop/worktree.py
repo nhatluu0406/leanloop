@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import subprocess
+import sys
 from pathlib import Path
 
 from leanloop_common import find_repo_root, validate_slug
@@ -80,7 +81,7 @@ def main() -> int:
             print(cp.stdout + cp.stderr)
             return cp.returncode
         task = subprocess.run(
-            ["python3", "scripts/leanloop/task.py", "start", slug], cwd=path, text=True,
+            [sys.executable, "scripts/leanloop/task.py", "start", slug], cwd=path, text=True,
             capture_output=True,
         )
         if task.returncode:

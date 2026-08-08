@@ -6,9 +6,9 @@ cd "$(dirname "$0")/.."
 SCOPE="${1:-core}"
 # shellcheck disable=SC1091
 source TOOLS.lock
-ok(){ printf '✓ %s\n' "$1"; }
-skip(){ printf '– %s\n' "$1"; }
-fail(){ printf '✗ %s\n' "$1" >&2; }
+ok(){ printf 'OK: %s\n' "$1"; }
+skip(){ printf 'SKIP: %s\n' "$1"; }
+fail(){ printf 'FAIL: %s\n' "$1" >&2; }
 
 command -v node >/dev/null 2>&1 || { fail "Node.js is required for npm/npx tools"; exit 1; }
 
