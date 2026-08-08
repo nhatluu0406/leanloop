@@ -88,16 +88,31 @@ def main() -> int:
     config = load_json(support / "skills.json", {})
     tiers = config.get("tiers", {}) if isinstance(config, dict) else {}
     listed: list[str] = [name for tier in tiers.values() for name in tier]
-    canonical = sorted(p.parent.name for p in (root / ".agents/skills").glob("*/SKILL.md"))
+    present = sorted(p.parent.name for p in (root / ".agents/skills").glob("*/SKILL.md"))
+    install = None if framework_mode else load_json(root / ".leanloop/install.json", None)
+
     if len(listed) != len(set(listed)):
         fails.append("skills.json contains duplicate skill names across tiers")
-    unknown = sorted(set(canonical) - set(listed))
-    if unknown:
-        fails.append(f"canonical skills not declared in skills.json: {', '.join(unknown)}")
+
     if framework_mode:
+        canonical = present
+        unknown = sorted(set(canonical) - set(listed))
+        if unknown:
+            fails.append(f"canonical skills not declared in skills.json: {', '.join(unknown)}")
         missing = sorted(set(listed) - set(canonical))
         if missing:
             fails.append(f"framework skills missing from canonical tree: {', '.join(missing)}")
+    elif isinstance(install, dict):
+        installed_tiers = [str(x) for x in install.get("installed_tiers", [])]
+        unknown_tiers = sorted(tier for tier in installed_tiers if tier not in tiers)
+        if unknown_tiers:
+            fails.append("install manifest references unknown tiers: " + ", ".join(unknown_tiers))
+        canonical = sorted({name for tier in installed_tiers if tier in tiers for name in tiers[tier]})
+        missing = sorted(set(canonical) - set(present))
+        if missing:
+            fails.append("installed LeanLoop skills missing from canonical tree: " + ", ".join(missing))
+    else:
+        canonical = []
 
     desc_chars = 0
     for name in canonical:
@@ -136,7 +151,6 @@ def main() -> int:
         fails.append("TOOLS.lock missing keys: " + ", ".join(missing_lock))
 
     if not framework_mode:
-        install = load_json(root / ".leanloop/install.json", None)
         if not isinstance(install, dict):
             fails.append("installed project missing .leanloop/install.json provenance manifest")
         else:
