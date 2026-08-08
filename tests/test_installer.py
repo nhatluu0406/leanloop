@@ -97,6 +97,25 @@ class InstallerTests(unittest.TestCase):
             self.assertFalse((target / ".agents/skills/concise-output").exists())
             self.assertFalse((target / ".leanloop/kit/PLAYBOOK.md").exists())
 
+    def test_install_ignores_project_specific_agents_skills_outside_selected_tiers(self):
+        with tempfile.TemporaryDirectory() as td:
+            target = Path(td)
+            subprocess.run(["git", "init", "-q"], cwd=target, check=True)
+            project_src = target / ".agents/skills/verify-game-change"
+            project_src.mkdir(parents=True)
+            (project_src / "SKILL.md").write_text("project canonical\n", encoding="utf-8")
+            project_claude = target / ".claude/skills/verify-game-change"
+            project_claude.mkdir(parents=True)
+            (project_claude / "SKILL.md").write_text("project claude variant\n", encoding="utf-8")
+
+            cp = subprocess.run(
+                [sys.executable, str(ROOT / "scripts/leanloop/install.py"), str(target), "--tiers", "0"],
+                text=True, capture_output=True,
+            )
+            self.assertEqual(cp.returncode, 0, cp.stdout + cp.stderr)
+            self.assertEqual((project_src / "SKILL.md").read_text(encoding="utf-8"), "project canonical\n")
+            self.assertEqual((project_claude / "SKILL.md").read_text(encoding="utf-8"), "project claude variant\n")
+
 
 if __name__ == "__main__":
     unittest.main()

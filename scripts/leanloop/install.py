@@ -591,7 +591,16 @@ def install_or_upgrade(source: Path, target: Path, args: argparse.Namespace) -> 
         target, python_command, existing.get("claude", {}) if isinstance(existing, dict) else None
     )
 
-    sync = subprocess.run([sys.executable, str(target / "scripts/leanloop/sync.py")], cwd=target, text=True)
+    sync = subprocess.run(
+        [
+            sys.executable,
+            str(target / "scripts/leanloop/sync.py"),
+            "--skills",
+            ",".join(selected),
+        ],
+        cwd=target,
+        text=True,
+    )
     if sync.returncode:
         print("FAIL: managed files updated but skill propagation failed; inspect sync output before retrying")
         return sync.returncode

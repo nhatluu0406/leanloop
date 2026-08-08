@@ -71,6 +71,21 @@ class SyncTests(unittest.TestCase):
         self.assertFalse((self.repo / ".claude/skills/demo").exists())
         self.assertFalse((self.repo / ".leanloop/managed.json").exists())
 
+    def test_scoped_sync_ignores_project_specific_canonical_skills(self):
+        project_skill = self.repo / ".agents/skills/project-only"
+        project_skill.mkdir(parents=True)
+        (project_skill / "SKILL.md").write_text("project canonical\n", encoding="utf-8")
+        project_copy = self.repo / ".claude/skills/project-only"
+        project_copy.mkdir(parents=True)
+        (project_copy / "SKILL.md").write_text("different project copy\n", encoding="utf-8")
+
+        cp = self.run_sync("--skills", "demo")
+        self.assertEqual(cp.returncode, 0, cp.stdout + cp.stderr)
+        self.assertEqual((project_copy / "SKILL.md").read_text(encoding="utf-8"), "different project copy\n")
+        manifest = json.loads((self.repo / ".leanloop/managed.json").read_text())
+        self.assertIn("demo", manifest["targets"][".claude/skills"]["skills"])
+        self.assertNotIn("project-only", manifest["targets"][".claude/skills"]["skills"])
+
 
 if __name__ == "__main__":
     unittest.main()

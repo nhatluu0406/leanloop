@@ -22,6 +22,8 @@ from leanloop_common import find_repo_root, load_json, write_json_atomic
 
 TARGETS = (Path(".claude/skills"), Path(".cursor/skills"))
 MANIFEST = Path(".leanloop/managed.json")
+INSTALL_MANIFEST = Path(".leanloop/install.json")
+KIT_SKILLS = Path(".leanloop/kit/skills.json")
 
 
 def digest_tree(path: Path) -> str:
@@ -48,6 +50,42 @@ def skill_dirs(src: Path) -> dict[str, Path]:
             out[child.name] = child
     return out
 
+
+
+def parse_skill_names(value: str | None) -> list[str] | None:
+    if value is None:
+        return None
+    return sorted({name.strip() for name in value.split(",") if name.strip()})
+
+
+def installed_skill_names(root: Path) -> list[str] | None:
+    """Return the LeanLoop-owned skill scope for an installed project.
+
+    A project may keep its own skills in .agents/skills. Those entries are not
+    LeanLoop-owned and must never be propagated merely because they share the
+    canonical source directory.
+    """
+    install = load_json(root / INSTALL_MANIFEST, None)
+    if not isinstance(install, dict):
+        return None
+    tiers = install.get("installed_tiers", [])
+    cfg = load_json(root / KIT_SKILLS, {})
+    tier_map = cfg.get("tiers", {}) if isinstance(cfg, dict) else {}
+    if not isinstance(tiers, list) or not isinstance(tier_map, dict):
+        return []
+    return sorted({
+        name
+        for tier in tiers
+        for name in (tier_map.get(str(tier), []) if isinstance(tier_map.get(str(tier), []), list) else [])
+        if isinstance(name, str)
+    })
+
+
+def scoped_skills(all_skills: dict[str, Path], names: list[str] | None) -> tuple[dict[str, Path], list[str]]:
+    if names is None:
+        return all_skills, []
+    missing = [name for name in names if name not in all_skills]
+    return {name: all_skills[name] for name in names if name in all_skills}, missing
 
 def safe_remove(path: Path) -> None:
     if path.is_symlink() or path.is_file():
@@ -172,6 +210,8 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="report drift without changing files")
     ap.add_argument("--force-managed", action="store_true",
                     help="overwrite only entries already recorded as LeanLoop-managed")
+    ap.add_argument("--skills", metavar="NAMES",
+                    help="comma-separated LeanLoop-owned skill names to propagate")
     args = ap.parse_args()
 
     root = find_repo_root(Path(__file__).resolve())
@@ -179,9 +219,20 @@ def main() -> int:
     if not src.is_dir():
         print(f"error: canonical skill directory not found: {src}", file=sys.stderr)
         return 2
-    canonical = skill_dirs(src)
-    if not canonical:
+    all_canonical = skill_dirs(src)
+    if not all_canonical:
         print("error: no canonical skills found", file=sys.stderr)
+        return 2
+
+    requested = parse_skill_names(args.skills)
+    if requested is None:
+        requested = installed_skill_names(root)
+    canonical, missing = scoped_skills(all_canonical, requested)
+    if missing:
+        print("error: requested LeanLoop skills are missing from .agents/skills: " + ", ".join(missing), file=sys.stderr)
+        return 2
+    if requested is not None and not canonical:
+        print("error: installed/requested LeanLoop skill scope is empty", file=sys.stderr)
         return 2
 
     manifest_path = root / MANIFEST
